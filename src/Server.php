@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Ody\HttpServer;
 
-use Ody\Core\Kernel;
+use Ody\Core\App;
+use Ody\Core\Http\Request;
 use Ody\Swoole\Coroutine\ContextManager;
 use Ody\HttpServer\RequestCallback;
 use Ody\Swoole\ServerState;
 use Swoole\Coroutine;
-use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server as SwooleServer;
 
@@ -23,9 +23,9 @@ class Server
     private SwooleServer $server;
 
     /**
-     * @var Kernel
+     * @var App
      */
-    private Kernel $kernel;
+    private App $kernel;
 
 
     public function __construct() {}
@@ -41,11 +41,11 @@ class Server
     }
 
     /**
-     * @param Kernel $kernel
+     * @param App $kernel
      * @param bool $daemonize
      * @return Server
      */
-    public function createServer(Kernel $kernel, bool $daemonize = false): Server
+    public function createServer(App $kernel, bool $daemonize = false): Server
     {
         $this->kernel = $kernel;
         $this->server = new SwooleServer(
@@ -68,7 +68,7 @@ class Server
      * @param Response $response
      * @return void
      */
-    public function onRequest(Request $request, Response $response): void
+    public function onRequest(\Swoole\Http\Request $request, \Swoole\Http\Response $response): void
     {
         Coroutine::create(function() use ($request, $response) {
             // Set global variables in the ContextManager
@@ -121,7 +121,7 @@ class Server
         ContextManager::set('_FILES', (array)$request->files);
         ContextManager::set('_COOKIE', (array)$request->cookie);
         ContextManager::set('_SERVER', (array)$request->server);
-        ContextManager::set('request', \Ody\Core\Http\Request::getInstance());
+        ContextManager::set('request', Request::getInstance());
     }
 
     /**
