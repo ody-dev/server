@@ -2,16 +2,20 @@
 
 namespace Ody\HttpServer\ServiceProviders;
 
-use Ody\Core\Kernel;
-use Ody\Core\ServiceProvider\Resolver;
-use Ody\Core\ServiceProvider\ServiceProvider;
+use Ody\Core\App;
+use Ody\Core\ServiceProviders\ServiceProvider;
 use Ody\HttpServer\Commands\ReloadCommand;
 use Ody\HttpServer\Commands\StartCommand;
 use Ody\HttpServer\Commands\StopCommand;
 
-class HttpServerServiceProvider
+class HttpServerServiceProvider extends ServiceProvider
 {
-    public function commands(): array
+    public function register()
+    {
+
+    }
+
+    public function boot(): array
     {
         return [
             StartCommand::class,
