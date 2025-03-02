@@ -2,11 +2,9 @@
 
 namespace Ody\HttpServer\Commands;
 
-use DI\Container;
 use Ody\Core\Console\Style;
-use Ody\Core\Foundation\App;
-use Ody\Core\Foundation\Bootstrap;
 use Ody\Core\Server\Dependencies;
+use Ody\Core\Server\HttpServer;
 use Ody\HttpServer\Server;
 use Ody\Swoole\ServerState;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -55,27 +53,23 @@ class StartCommand extends Command
         $serverState = ServerState::getInstance();
         $this->io = new Style($input, $output);
 
-        if (!$this->canPhpServerRun($input) ||
-            !$this->canDaemonRun($input) ||
+        if (!$this->canDaemonRun($input) ||
             !$this->checkSslCertificate() ||
             !Dependencies::check($this->io)
         ) {
             return Command::FAILURE;
         }
 
-        if ($serverState->websocketServerIsRunning()) {
+        if ($serverState->httpServerIsRunning()) {
             $this->handleRunningServer($input, $output);
         }
 
-        /*
-         * Bootstrap the app and start the server
-         */
-        Server::init()->createServer(
-            Bootstrap::init(App::create(new Container())),
-            $input->getOption('daemonize'),
-            $input->getOption('watch'),
-            $this->io
-        )->start();
+        (new HttpServer())->start(
+            Server::init()->createServer(
+                $input->getOption('daemonize'),
+                $input->getOption('watch')
+            )
+        );
 
         return Command::SUCCESS;
     }
@@ -119,17 +113,6 @@ class StartCommand extends Command
     {
         if ($input->getOption('daemonize') && $input->getOption('watch')) {
             $this->io->error('Cannot use watcher in daemonize mode', true);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    private function canPhpServerRun(InputInterface $input): bool
-    {
-        if ($input->getOption('daemonize') && $input->getOption('phpserver')) {
-            $this->io->error('Cannot use th PHP server in daemonize mode', true);
 
             return false;
         }
