@@ -3,14 +3,16 @@ declare(strict_types=1);
 
 namespace Ody\HttpServer;
 
-use Ody\Core\App;
-use Ody\Core\Http\Request;
+use Ody\Core\Console\Style;
+use Ody\Core\Foundation\App;
+use Ody\Core\Foundation\Http\Request;
 use Ody\Swoole\Coroutine\ContextManager;
-use Ody\HttpServer\RequestCallback;
+use Ody\Swoole\HotReload\Watcher;
 use Ody\Swoole\ServerState;
 use Swoole\Coroutine;
 use Swoole\Http\Response;
 use Swoole\Http\Server as SwooleServer;
+use Swoole\Process;
 
 /**
  * @psalm-api
@@ -40,14 +42,19 @@ class Server
         $this->server->start();
     }
 
+    public static function init(): Server
+    {
+        return new self();
+    }
+
     /**
      * @param App $kernel
      * @param bool $daemonize
      * @return Server
      */
-    public function createServer(App $kernel, bool $daemonize = false): Server
+    public function createServer(App $app, bool $daemonize, bool $watcher, Style $io): Server
     {
-        $this->kernel = $kernel;
+        $this->kernel = $app;
         $this->server = new SwooleServer(
             config('server.host'),
             (int) config('server.port'),
@@ -55,16 +62,45 @@ class Server
             config('server.sock_type')
         );
 
-        // \Swoole\Runtime::enableCoroutine(SWOOLE_HOOK_ALL);
-        $this->server->set([...config('server.additional'), 'daemonize' => (int) $daemonize]);
+        if(config('server.runtime.enable_coroutine')) {
+            \Swoole\Runtime::enableCoroutine(
+                config('server.runtime.hook_flag')
+            );
+        }
+
+        $this->server->set([
+            ...config('server.additional'),
+            'daemonize' => (int) $daemonize,
+            'enable_coroutine' => false // must be set on false for Runtime::enableCoroutine
+        ]);
+
         $this->server->on('request', [$this, 'onRequest']);
         $this->server->on('workerStart', [$this, 'onWorkerStart']);
+        $this->server->on('start', function (SwooleServer $server) use ($io, $watcher) {
+            $protocol = ($server->ssl) ? "https" : "http";
+            $io->success('http server started successfully');
+            $io->info("listen on " . $protocol . "://" . $server->host . ':' . $server->port);
+            $io->info('press Ctrl+C to stop the server');
+
+            if ($watcher) {
+                (new Process(function (Process $process) {
+                    ServerState::getInstance()
+                        ->setWatcherProcessId($process->pid);
+                    (new Watcher())->start();
+                }))->start();
+
+                $io->info('File watcher is enabled');
+            }
+        });
+        $this->server->on('WorkerError', function (SwooleServer $serv, \Swoole\Server\StatusInfo $info) {
+            dd($info);
+        });
 
         return $this;
     }
 
     /**
-     * @param Request $request
+     * @param \Swoole\Http\Request $request
      * @param Response $response
      * @return void
      */
