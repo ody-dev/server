@@ -48,10 +48,10 @@ class Server
     public function createServer(bool $daemonize, bool $watcher): Server
     {
         $this->server = new SwooleServer(
-            config('server.host'),
-            (int) config('server.port'),
+            config('server.host', "127.0.0.1"),
+            (int) config('server.port', 9501),
             $this->getSslConfig(),
-            config('server.sock_type')
+            config('server.sock_type', SWOOLE_SOCK_TCP)
         );
 
         if(config('server.runtime.enable_coroutine')) {
@@ -73,7 +73,6 @@ class Server
 
         if ($watcher) {
             (new Process(function (Process $process) {
-                var_dump($process->pid);
                 ServerState::getInstance()
                     ->setWatcherProcessId($process->pid);
                 (new Watcher())->start();
@@ -160,7 +159,7 @@ class Server
      * @param int $signal
      * @return void
      */
-    public static function onWorkerError(SwooleServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code, int $signal): void
+    public static function onWorkerError(SwooleServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
     {
         dd('WorkerError', $workerId);
     }
@@ -178,5 +177,10 @@ class Server
         }
 
         return config('server.mode');
+    }
+
+    public function getServer(): SwooleServer
+    {
+        return $this->server;
     }
 }

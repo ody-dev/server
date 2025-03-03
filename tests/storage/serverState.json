@@ -1,0 +1,36 @@
+{
+    "pIds": {
+        "masterProcessId": 69698,
+        "managerProcessId": 69697,
+        "watcherProcessId": null,
+        "workerProcessIds": [
+            69698,
+            69699,
+            69700,
+            69701,
+            69702,
+            69703,
+            69704,
+            69705,
+            69706,
+            69707,
+            69708,
+            69709,
+            69710,
+            69711,
+            69712,
+            69713,
+            69714,
+            69715,
+            69716,
+            69717,
+            69718,
+            69719,
+            69720,
+            69721
+        ],
+        "websocketMasterProcessId": null,
+        "websocketManagerProcessId": null,
+        "websocketWorkerProcessIds": []
+    }
+}
