@@ -4,8 +4,6 @@ use Ody\HttpServer\Server;
 use Swoole\Process;
 use Swoole\Runtime;
 
-define('PROJECT_PATH' , realpath('./tests'));
-
 class ServerTest extends \PHPUnit\Framework\TestCase
 {
     public function testHttpClassInitialises()
