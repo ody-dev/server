@@ -1,18 +1,7 @@
+[![Actions Status](https://github.com/ody-dev/ody-http-server/workflows/Build%20and%20test/badge.svg)](https://github.com/ody-dev/ody-http-server/actions)
+[![License](https://poser.pugx.org/ody/core/license)](https://packagist.org/packages/ody/core)
+
 ## HTTP server
 ```
 composer require ody/http-server
-```
-
-
-```php
-/**
- * Returns an $app instance, in theory this could be anything 
- * as long as it handles psr7 requests/responses. You could for 
- * example plug a Slim framework instance in here.
- */
-$kernel = Kernel::init();
-
-(new Http())->createServer(
-    $kernel
-)->start(),
 ```
