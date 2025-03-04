@@ -1,6 +1,6 @@
 <?php
 
-namespace Ody\HttpServer\ServiceProviders;
+namespace Ody\HttpServer\Providers;
 
 use Ody\Core\Foundation\Providers\ServiceProvider;
 use Ody\HttpServer\Commands\ReloadCommand;

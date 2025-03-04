@@ -2,11 +2,11 @@
 
 namespace Ody\HttpServer\Commands;
 
-use Ody\Core\Console\Style;
+use Ody\Core\Foundation\Console\Style;
 use Ody\Core\Server\Dependencies;
 use Ody\Core\Server\HttpServer;
+use Ody\HttpServer\HttpServerState;
 use Ody\HttpServer\Server;
-use Ody\Swoole\ServerState;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class StartCommand extends Command
 {
-    private ServerState $serverState;
+    private HttpServerState $serverState;
     private SymfonyStyle $io;
 
     protected function configure(): void
@@ -50,7 +50,7 @@ class StartCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
 
-        $serverState = ServerState::getInstance();
+        $serverState = HttpServerState::getInstance();
         $this->io = new Style($input, $output);
 
         if (!$this->canDaemonRun($input) ||
@@ -76,7 +76,6 @@ class StartCommand extends Command
 
     private function handleRunningServer(InputInterface $input, OutputInterface $output): void
     {
-        $serverState = ServerState::getInstance();
         $this->io->error('failed to listen server port[' . config('server.host') . ':' . config('server.port') . '], Error: Address already', true);
 
         $helper = $this->getHelper('question');
@@ -87,26 +86,21 @@ class StartCommand extends Command
         );
         $question->setErrorMessage('Your selection is invalid.');
 
-        $answer = $helper->ask($input, $output, $question);
-
-
-        if ($answer != 'yes') {
+        if ($helper->ask($input, $output, $question) !== 'yes') {
             return;
         }
 
-        posix_kill($serverState->getMasterProcessId(), SIGTERM);
-        posix_kill($serverState->getManagerProcessId(), SIGTERM);
+        $serverState = HttpServerState::getInstance();
+        $serverState->killProcesses([
+            $serverState->getMasterProcessId(),
+            $serverState->getManagerProcessId(),
+            $serverState->getWatcherProcessId(),
+            ...$serverState->getWorkerProcessIds()
+        ]);
 
-        $watcherProcessId = $serverState->getWatcherProcessId();
-        if (!is_null($watcherProcessId) && posix_kill($watcherProcessId, SIG_DFL)) {
-            posix_kill($watcherProcessId, SIGTERM);
-        }
+        $serverState->clearProcessIds();
 
-        foreach ($serverState->getWorkerProcessIds() as $processId) {
-            posix_kill($processId, SIGTERM);
-        }
-
-        sleep(1);
+        sleep(2);
     }
 
     private function canDaemonRun(InputInterface $input): bool

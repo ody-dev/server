@@ -3,11 +3,9 @@ declare(strict_types=1);
 
 namespace Ody\HttpServer;
 
-use Ody\Core\Console\Style;
 use Ody\Swoole\HotReload\Watcher;
-use Ody\Swoole\ServerState;
-use Swoole\Http\Response;
 use Swoole\Http\Request as SwooleRequest;
+use Swoole\Http\Response;
 use Swoole\Http\Server as SwooleServer;
 use Swoole\Process;
 use Swoole\Runtime;
@@ -48,10 +46,10 @@ class Server
     public function createServer(bool $daemonize, bool $watcher): Server
     {
         $this->server = new SwooleServer(
-            config('server.host'),
-            (int) config('server.port'),
+            config('server.host', "127.0.0.1"),
+            (int) config('server.port', 9501),
             $this->getSslConfig(),
-            config('server.sock_type')
+            config('server.sock_type', SWOOLE_SOCK_TCP)
         );
 
         if(config('server.runtime.enable_coroutine')) {
@@ -73,8 +71,7 @@ class Server
 
         if ($watcher) {
             (new Process(function (Process $process) {
-                var_dump($process->pid);
-                ServerState::getInstance()
+                HttpServerState::getInstance()
                     ->setWatcherProcessId($process->pid);
                 (new Watcher())->start();
             }))->start();
@@ -121,7 +118,7 @@ class Server
                 $workerIds[$i] = $server->getWorkerPid($i);
             }
 
-            $serveState = ServerState::getInstance();
+            $serveState = HttpServerState::getInstance();
             $serveState->setMasterProcessId($server->getMasterPid());
             $serveState->setManagerProcessId($server->getManagerPid());
             $serveState->setWorkerProcessIds($workerIds);
@@ -178,5 +175,10 @@ class Server
         }
 
         return config('server.mode');
+    }
+
+    public function getServer(): SwooleServer
+    {
+        return $this->server;
     }
 }

@@ -1,13 +1,16 @@
 <?php
 
+use Ody\HttpServer\ServerEvent;
+
 return [
     'mode' => SWOOLE_BASE,
     'host' => '127.0.0.1',
     'port' => 9501 ,
-    'sockType' => SWOOLE_SOCK_TCP,
+    'sock_type' => SWOOLE_SOCK_TCP,
     'additional' => [
-        'worker_num' => 2,
-        /*
+        'worker_num' => swoole_cpu_num() * 2 ,
+        'open_http_protocol' => true,
+        /**
          * log level
          * SWOOLE_LOG_DEBUG (default)
          * SWOOLE_LOG_TRACE
@@ -16,10 +19,40 @@ return [
          * SWOOLE_LOG_WARNING
          * SWOOLE_LOG_ERROR
          */
-        'log_level' => SWOOLE_LOG_DEBUG ,
-        'log_file' => '',
-        'open_http_protocol' => true,
-        'enable_coroutine' => true // Required for context to work
+        'log_level' => 1,
+//        'log_file' => base_path('/storage/logs/ody_server.log'),
+        'log_rotation' => SWOOLE_LOG_ROTATION_DAILY,
+        'log_date_format' => '%Y-%m-%d %H:%M:%S',
+
+        // Coroutine
+        'max_coroutine' => 3000,
+        'send_yield' => false,
+    ],
+
+    'runtime' => [
+        /**
+         * enabling this will run clients like MySQL and Redis in a non-blocking fashion
+         * https://wiki.swoole.com/en/#/runtime
+         */
+        'enable_coroutine' => true,
+        /**
+         * SWOOLE_HOOK_TCP - Enable TCP hook only
+         * SWOOLE_HOOK_TCP | SWOOLE_HOOK_UDP | SWOOLE_HOOK_SOCKETS - Enable TCP, UDP and socket hooks
+         * SWOOLE_HOOK_ALL - Enable all runtime hooks
+         * SWOOLE_HOOK_ALL ^ SWOOLE_HOOK_FILE ^ SWOOLE_HOOK_STDIO - Enable all runtime hooks except file and stdio hooks
+         * 0 - Disable runtime hooks
+         */
+        'hook_flag' => SWOOLE_HOOK_ALL,
+    ],
+
+    /**
+     * Override default callbacks for server events
+     */
+    'callbacks' => [
+        ServerEvent::ON_REQUEST => [\Ody\HttpServer\Server::class, 'onRequest'],
+        ServerEvent::ON_START => [\Ody\HttpServer\Tests\ServerEvents::class, 'onStart'],
+        ServerEvent::ON_WORKER_ERROR => [\Ody\HttpServer\Server::class, 'onWorkerError'],
+        ServerEvent::ON_WORKER_START => [\Ody\HttpServer\Server::class, 'onWorkerStart'],
     ],
 
     'ssl' => [
@@ -27,15 +60,9 @@ return [
         'ssl_key_file' => null ,
     ] ,
 
-    /*
-     * The following services are created for better performance 
-     * in the program, only one object is created from them and 
-     * they can be used throughout the program
-     */
-    'services' => [] ,
-
-    /*
-     * Files and folders that must be changed in real time
+    /**
+     * Configure what directories or files must be
+     * watched for hot reloading.
      */
     'watcher' => [
         'App',
@@ -43,5 +70,5 @@ return [
         'database',
         'composer.lock',
         '.env',
-    ] 
+    ]
 ];
