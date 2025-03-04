@@ -2,7 +2,7 @@
 
 namespace Ody\HttpServer\Commands;
 
-use Ody\Core\Console\Style;
+use Ody\Core\Foundation\Console\Style;
 use Ody\HttpServer\HttpServerState;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

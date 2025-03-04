@@ -2,11 +2,11 @@
 
 namespace Ody\HttpServer\Commands;
 
-use Ody\Core\Console\Style;
+use Ody\Core\Foundation\Console\Style;
 use Ody\Core\Server\Dependencies;
 use Ody\Core\Server\HttpServer;
-use Ody\HttpServer\Server;
 use Ody\HttpServer\HttpServerState;
+use Ody\HttpServer\Server;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
