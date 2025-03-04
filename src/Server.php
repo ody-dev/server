@@ -160,7 +160,7 @@ class Server
      * @param int $signal
      * @return void
      */
-    public static function onWorkerError(SwooleServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code, int $signal): void
+    public static function onWorkerError(SwooleServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
     {
         dd('WorkerError', $workerId);
     }
