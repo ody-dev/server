@@ -2,8 +2,6 @@
 
 namespace Ody\Server\State;
 
-use Ody\Swoole\ServerState;
-
 class HttpServerState extends ServerState
 {
     protected static ?self $instance = null;
