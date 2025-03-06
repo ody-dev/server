@@ -23,12 +23,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Ody\\HttpServer\\": "src/"
+      "Ody\\Server\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Ody\\HttpServer\\Tests\\": "tests/"
+      "Ody\\Server\\Tests\\": "tests/"
     }
   },
   "scripts": {
