@@ -6,7 +6,8 @@ use Ody\Core\Foundation\Console\Style;
 use Ody\Core\Server\Dependencies;
 use Ody\Core\Server\HttpServer;
 use Ody\HttpServer\HttpServerState;
-use Ody\HttpServer\Server;
+use Ody\Swoole\Server\ServerManager;
+use Ody\Swoole\Server\ServerType;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,11 +65,13 @@ class StartCommand extends Command
             $this->handleRunningServer($input, $output);
         }
 
-        (new HttpServer())->start(
-            Server::init()->createServer(
-                $input->getOption('daemonize'),
-                $input->getOption('watch')
-            )
+        HttpServer::start(
+            ServerManager::init(ServerType::HTTP_SERVER, HttpServerState::getInstance())
+                ->createServer(config('server'))
+                ->setServerConfig(config('server.additional'))
+                ->registerCallbacks(config('server.callbacks'))
+                ->daemonize($input->getOption('daemonize'))
+                ->getServerInstance()
         );
 
         return Command::SUCCESS;

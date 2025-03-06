@@ -13,74 +13,8 @@ use Swoole\Runtime;
 /**
  * @psalm-api
  */
-class Server
+class ServerCallbacks
 {
-    /**
-     * @var SwooleServer
-     */
-    private SwooleServer $server;
-
-    /**
-     * Starts the server
-     *
-     * @return void
-     */
-    public function start(): void
-    {
-        $this->server->start();
-    }
-
-    /**
-     * @return Server
-     */
-    public static function init(): Server
-    {
-        return new self();
-    }
-
-    /**
-     * @param bool $daemonize
-     * @param bool $watcher
-     * @return Server
-     */
-    public function createServer(bool $daemonize, bool $watcher): Server
-    {
-        $this->server = new SwooleServer(
-            config('server.host', "127.0.0.1"),
-            (int) config('server.port', 9501),
-            $this->getSslConfig(),
-            config('server.sock_type', SWOOLE_SOCK_TCP)
-        );
-
-        if(config('server.runtime.enable_coroutine')) {
-            Runtime::enableCoroutine(
-                config('server.runtime.hook_flag')
-            );
-        }
-
-        $this->server->set([
-            ...config('server.additional'),
-            'daemonize' => (int) $daemonize,
-            'enable_coroutine' => false // must be set on false for Runtime::enableCoroutine
-        ]);
-
-        $this->registerCallbacks(
-            config('server.callbacks')
-        );
-
-        if ($watcher) {
-            (new Process(function (Process $process) {
-                HttpServerState::getInstance()
-                    ->setWatcherProcessId($process->pid);
-                (new Watcher())->start();
-            }))->start();
-
-            echo "   \033[1mINFO\033[0m  File watcher is enabled\n";
-        }
-
-        return $this;
-    }
-
     /**
      * @param SwooleServer $server
      * @return void
