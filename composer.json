@@ -1,5 +1,5 @@
 {
-  "name": "ody/http-server",
+  "name": "ody/server",
   "description": "Swoole HTTP server for ODY framework",
   "minimum-stability": "stable",
   "license": "MIT",
