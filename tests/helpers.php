@@ -1,6 +1,6 @@
 <?php
 
-use Ody\HttpServer\Tests\Config;
+use Ody\Server\Tests\Config;
 
 if (! function_exists('config')) {
     function config(string $key, mixed $default = null): mixed

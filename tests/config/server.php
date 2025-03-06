@@ -1,6 +1,6 @@
 <?php
 
-use Ody\HttpServer\ServerEvent;
+use Ody\Server\ServerEvent;
 
 return [
     'mode' => SWOOLE_BASE,
@@ -49,10 +49,10 @@ return [
      * Override default callbacks for server events
      */
     'callbacks' => [
-        ServerEvent::ON_REQUEST => [\Ody\HttpServer\Server::class, 'onRequest'],
-        ServerEvent::ON_START => [\Ody\HttpServer\Tests\ServerEvents::class, 'onStart'],
-        ServerEvent::ON_WORKER_ERROR => [\Ody\HttpServer\Server::class, 'onWorkerError'],
-        ServerEvent::ON_WORKER_START => [\Ody\HttpServer\Server::class, 'onWorkerStart'],
+        ServerEvent::ON_REQUEST => [\Ody\Core\Foundation\Http\Server::class, 'onRequest'],
+        ServerEvent::ON_START => [\Ody\Server\Tests\ServerEvents::class, 'onStart'],
+        ServerEvent::ON_WORKER_ERROR => [\Ody\Server\ServerCallbacks::class, 'onWorkerError'],
+        ServerEvent::ON_WORKER_START => [\Ody\Server\ServerCallbacks::class, 'onWorkerStart'],
     ],
 
     'ssl' => [

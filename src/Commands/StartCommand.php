@@ -1,12 +1,12 @@
 <?php
 
-namespace Ody\HttpServer\Commands;
+namespace Ody\Server\Commands;
 
 use Ody\Core\Foundation\Console\Style;
+use Ody\Core\Foundation\Http\Server;
 use Ody\Core\Server\Dependencies;
-use Ody\Core\Server\HttpServer;
-use Ody\HttpServer\HttpServerState;
-use Ody\Swoole\Server\ServerManager;
+use Ody\Server\State\HttpServerState;
+use Ody\Server\ServerManager;
 use Ody\Swoole\Server\ServerType;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -65,7 +65,7 @@ class StartCommand extends Command
             $this->handleRunningServer($input, $output);
         }
 
-        HttpServer::start(
+        Server::start(
             ServerManager::init(ServerType::HTTP_SERVER, HttpServerState::getInstance())
                 ->createServer(config('server'))
                 ->setServerConfig(config('server.additional'))

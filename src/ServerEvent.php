@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ody\HttpServer;
+namespace Ody\Server;
 
 class ServerEvent
 {

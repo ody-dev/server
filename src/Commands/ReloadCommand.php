@@ -1,9 +1,9 @@
 <?php
 
-namespace Ody\HttpServer\Commands;
+namespace Ody\Server\Commands;
 
 use Ody\Core\Foundation\Console\Style;
-use Ody\HttpServer\HttpServerState;
+use Ody\Server\State\HttpServerState;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

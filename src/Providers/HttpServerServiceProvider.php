@@ -1,11 +1,11 @@
 <?php
 
-namespace Ody\HttpServer\Providers;
+namespace Ody\Server\Providers;
 
 use Ody\Core\Foundation\Providers\ServiceProvider;
-use Ody\HttpServer\Commands\ReloadCommand;
-use Ody\HttpServer\Commands\StartCommand;
-use Ody\HttpServer\Commands\StopCommand;
+use Ody\Server\Commands\ReloadCommand;
+use Ody\Server\Commands\StartCommand;
+use Ody\Server\Commands\StopCommand;
 
 class HttpServerServiceProvider extends ServiceProvider
 {

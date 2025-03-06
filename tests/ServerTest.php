@@ -1,6 +1,6 @@
 <?php
 
-use Ody\HttpServer\Server;
+use Ody\Server\Server;
 use Swoole\Process;
 use Swoole\Runtime;
 

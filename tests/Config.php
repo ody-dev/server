@@ -1,6 +1,6 @@
 <?php
 
-namespace Ody\HttpServer\Tests;
+namespace Ody\Server\Tests;
 
 class Config
 {

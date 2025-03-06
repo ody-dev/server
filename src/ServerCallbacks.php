@@ -1,14 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Ody\HttpServer;
+namespace Ody\Server;
 
-use Ody\Swoole\HotReload\Watcher;
-use Swoole\Http\Request as SwooleRequest;
-use Swoole\Http\Response;
-use Swoole\Http\Server as SwooleServer;
-use Swoole\Process;
-use Swoole\Runtime;
+use Ody\Server\State\HttpServerState;
+use Swoole\Http\Request as SwRequest;
+use Swoole\Http\Response as SwResponse;
+use Swoole\Http\Server as SwServer;
 
 /**
  * @psalm-api
@@ -16,33 +14,33 @@ use Swoole\Runtime;
 class ServerCallbacks
 {
     /**
-     * @param SwooleServer $server
+     * @param SwServer $server
      * @return void
      */
-    public static function onStart (SwooleServer $server): void
+    public static function onStart (SwServer $server): void
     {
         $protocol = ($server->ssl) ? "https" : "http";
-        echo "   \033[1mSUCCESS\033[0m  http server started successfully\n";
+        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
         echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
         echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";
     }
 
     /**
-     * @param SwooleRequest $request
-     * @param Response $response
+     * @param SwRequest $request
+     * @param SwResponse $response
      * @return void
      */
-    public static function onRequest(SwooleRequest $request, Response $response): void
+    public static function onRequest(SwRequest $request, SwResponse $response): void
     {
 
     }
 
     /**
-     * @param SwooleServer $server
+     * @param SwServer $server
      * @param int $workerId
      * @return void
      */
-    public static function onWorkerStart(SwooleServer $server, int $workerId): void
+    public static function onWorkerStart(SwServer $server, int $workerId): void
     {
         // Save worker ids to serverState.json
         if ($workerId == config('server.additional.worker_num') - 1) {
@@ -59,38 +57,37 @@ class ServerCallbacks
     }
 
     /**
-     * @param SwooleServer $server
+     * @param SwServer $server
      * @return void
      */
-    public static function onManagerStart(SwooleServer $server)
+    public static function onManagerStart(SwServer $server)
     {
 
     }
 
     /**
-     * @param SwooleServer $server
+     * @param SwServer $server
      * @return void
      */
-    public static function onManagerStop(SwooleServer $server)
+    public static function onManagerStop(SwServer $server)
     {
 
     }
 
-    public static function onReceive(SwooleServer $server, int $fd, int $reactorId, string $data)
+    public static function onReceive(SwServer $server, int $fd, int $reactorId, string $data)
     {
         dd($data);
     }
 
     /**
-     * @param SwooleServer $server
+     * @param SwServer $server
      * @param int $workerId
      * @param int $worker_id
      * @param int $worker_pid
      * @param int $exit_code
-     * @param int $signal
      * @return void
      */
-    public static function onWorkerError(SwooleServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
+    public static function onWorkerError(SwServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
     {
         dd('WorkerError', $workerId);
     }
@@ -108,17 +105,5 @@ class ServerCallbacks
         }
 
         return config('server.mode');
-    }
-
-    public function getServer(): SwooleServer
-    {
-        return $this->server;
-    }
-
-    private function registerCallbacks(array $callbacks): void
-    {
-        foreach ($callbacks as $event => $callback) {
-            $this->server->on($event, [...$callback]);
-        }
     }
 }

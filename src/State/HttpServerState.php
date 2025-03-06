@@ -1,6 +1,6 @@
 <?php
 
-namespace Ody\HttpServer;
+namespace Ody\Server\State;
 
 use Ody\Swoole\ServerState;
 
