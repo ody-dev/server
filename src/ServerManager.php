@@ -18,10 +18,9 @@ class ServerManager
 
     protected static $serverState;
 
-    public static function init(string $serverType, object $serverState): static
+    public static function init(string $serverType): static
     {
         static::$serverType = $serverType;
-        static::$serverState = $serverState;
 
         return new static();
     }
@@ -109,11 +108,11 @@ class ServerManager
      * @param int $enableWatcher
      * @return void
      */
-    public function setWatcher(int $enableWatcher): void
+    public function setWatcher(int $enableWatcher, object $serverState): void
     {
         if ($enableWatcher) {
-            (new Process(function (Process $process) {
-                static::$serverState::getInstance()
+            (new Process(function (Process $process) use ($serverState) {
+                $serverState::getInstance()
                     ->setWatcherProcessId($process->pid);
                 (new Watcher())->start();
             }))->start();
