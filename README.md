@@ -38,7 +38,7 @@ $config = [
 ;
 ```
 
-### Creatine & starting a server
+### Creating & starting a server
 
 ```php
 $server = ServerManager::init(ServerType::HTTP_SERVER) // ServerType::WS_SERVER to start a websocket server
