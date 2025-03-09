@@ -106,6 +106,7 @@ class ServerManager
      * specified files and folders
      *
      * @param int $enableWatcher
+     * @param object $serverState
      * @return void
      */
     public function setWatcher(int $enableWatcher, object $serverState): void
