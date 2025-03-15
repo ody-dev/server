@@ -12,7 +12,6 @@
   "require": {
     "php": ">=8.3",
     "ody/swoole": "dev-master",
-    "ody/helpers": "dev-master",
     "psr/http-message": "^2.0",
     "psr/http-server-handler": "^1.0"
   },

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Ody\Server;
 
-use Ody\Monolog\Logger;
 use Ody\Server\State\HttpServerState;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
@@ -90,7 +89,7 @@ class ServerCallbacks
      */
     public static function onWorkerError(SwServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
     {
-        Logger::write('error', "Worker error: $workerId - pid: $worker_pid, exit_code: $exit_code");
+        error_log("Worker error: $workerId - pid: $worker_pid, exit_code: $exit_code");
     }
 
     /**
