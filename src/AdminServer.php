@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Ody;
+namespace Ody\Server;
 
 use Swoole\Coroutine;
 use Swoole\Http\Request;
@@ -400,6 +400,27 @@ class AdminServer
             return;
         }
 
+        $admin_server = new \Swoole\Coroutine\Http\Server('127.0.0.1', 9500, false);
+
+        $admin_server->handle('/dashboard', function (Request $req, Response $resp) {
+            $resp->header('Content-Type', 'text/html');
+            $html = file_get_contents(__DIR__ . '/../admin-dashboard.html') ;
+            $resp->end($html);
+        });
+
+        // Handle CSS file request
+        $admin_server->handle('/admin-dashboard.css', function (Request $req, Response $resp) {
+            $resp->header('Content-Type', 'text/css');
+            $resp->end(file_get_contents(__DIR__ . '/../admin-dashboard.css'));
+        });
+
+        // Handle JS file request
+        $admin_server->handle('/admin-dashboard.js', function (Request $req, Response $resp) {
+            $resp->header('Content-Type', 'application/javascript');
+            $resp->end(file_get_contents(__DIR__ . '/../admin-dashboard.js'));
+        });
+
+
         if ($admin_server_uri->contains('@')) {
             [$access_name, $access_secret] = $admin_server_uri->split('@', 2)->get(0)->split(':', 2)->toArray();
             self::$accessToken             = sha1($access_name . $access_secret);
@@ -410,8 +431,6 @@ class AdminServer
 
         error_log($host);
         error_log(self::$accessToken);
-
-        $admin_server = new \Swoole\Coroutine\Http\Server($host, 9506, false);
 
         $admin_server->handle('/api', function (Request $req, Response $resp) use ($server) {
             $path_array = swoole_string($req->server['request_uri'])->trim('/')->split('/');
@@ -424,7 +443,7 @@ class AdminServer
             $resp->header('Server', 'swoole-admin-server');
             $resp->header('Access-Control-Allow-Origin', '*');
             $resp->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-            $resp->header('Access-Control-Allow-Headers', 'X-ACCESS-TOKEN, X-ADMIN-SERVER-ACCESS-TOKEN');
+            $resp->header('Access-Control-Allow-Headers', 'X-ACCESS-TOKEN, X-ADMIN-SERVER-ACCESS-TOKEN, Content-Type');
 
             $method = $req->getMethod();
 
@@ -433,15 +452,15 @@ class AdminServer
                 return;
             }
 
-            $token = self::getAccessToken();
-            if (!empty($token)) {
-                $token_header = $req->header['x-admin-server-access-token'] ?? '';
-                if ($token_header !== $token) {
-                    $resp->status(403);
-                    $resp->end(self::json('Bad access token', 4003));
-                    return;
-                }
-            }
+//            $token = self::getAccessToken();
+//            if (!empty($token)) {
+//                $token_header = $req->header['x-admin-server-access-token'] ?? '';
+//                if ($token_header !== $token) {
+//                    $resp->status(403);
+//                    $resp->end(self::json('Bad access token', 4003));
+//                    return;
+//                }
+//            }
 
             $cmd = $path_array->get(1)->toString();
 

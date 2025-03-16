@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swoole Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1><i class="fas fa-server"></i> Swoole Admin Dashboard</h1>
+        <div class="auth-panel">
+            <input type="text" id="server-url" placeholder="Server URL" value="http://localhost:9506">
+            <input type="text" id="access-token" placeholder="Access Token">
+            <button id="connect-btn">Connect</button>
+        </div>
+    </header>
+
+    <div id="connection-info" class="connection-info">
+        <span class="status disconnected"></span>
+        <span id="connection-status">Disconnected</span>
+    </div>
+
+    <div id="dashboard-content" class="hidden">
+        <div class="action-buttons">
+            <button id="refresh-btn" class="refresh"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+            <button id="reload-server-btn"><i class="fas fa-redo"></i> Reload Server</button>
+            <button id="shutdown-server-btn" class="danger"><i class="fas fa-power-off"></i> Shutdown Server</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3><i class="fas fa-info-circle"></i> Server Info</h3>
+                <div id="server-info">
+                    <div class="metric">
+                        <div class="metric-label">Version</div>
+                        <div class="metric-value" id="swoole-version">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">PHP Version</div>
+                        <div class="metric-value" id="php-version">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Operating System</div>
+                        <div class="metric-value" id="os-info">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Server IP</div>
+                        <div class="metric-value" id="server-ip">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-microchip"></i> Server Stats</h3>
+                <div id="server-stats">
+                    <div class="metric">
+                        <div class="metric-label">Start Time</div>
+                        <div class="metric-value" id="start-time">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Connection Count</div>
+                        <div class="metric-value" id="connection-count">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Accept Count</div>
+                        <div class="metric-value" id="accept-count">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Request Count</div>
+                        <div class="metric-value" id="request-count">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-cogs"></i> Server Settings</h3>
+                <div id="server-settings">
+                    <div class="metric">
+                        <div class="metric-label">Worker Num</div>
+                        <div class="metric-value" id="worker-num">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Task Worker Num</div>
+                        <div class="metric-value" id="task-worker-num">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Reactor Num</div>
+                        <div class="metric-value" id="reactor-num">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Port</div>
+                        <div class="metric-value" id="server-port">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Memory Usage</h2>
+            </div>
+            <div class="card">
+                <div id="memory-usage">
+                    <div class="metric">
+                        <div class="metric-label">Total Memory</div>
+                        <div class="metric-value" id="total-memory">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Master Process</div>
+                        <div class="metric-value" id="master-memory">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Manager Process</div>
+                        <div class="metric-value" id="manager-memory">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">System Memory Usage</div>
+                        <div class="metric-value" id="memory-percentage">-</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="memory-progress"></div>
+                    </div>
+                    <div class="memory-text">
+                        <span>0</span>
+                        <span id="max-memory">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="processes">Processes</button>
+                <button class="tab-button" data-tab="coroutines">Coroutines</button>
+                <button class="tab-button" data-tab="connections">Connections</button>
+            </div>
+
+            <div class="tab-content active" id="processes-tab">
+                <div class="coroutine-info">
+                    <div class="coroutine-metric">
+                        <h4>Worker Processes</h4>
+                        <div class="value" id="worker-count">-</div>
+                    </div>
+                    <div class="coroutine-metric">
+                        <h4>Task Workers</h4>
+                        <div class="value" id="task-count">-</div>
+                    </div>
+                    <div class="coroutine-metric">
+                        <h4>Total Processes</h4>
+                        <div class="value" id="total-processes">-</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>PID</th>
+                        <th>Memory Usage</th>
+                        <th>CPU Usage</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="process-table-body">
+                    <tr>
+                        <td colspan="5" class="text-center">Loading process data...</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tab-content" id="coroutines-tab">
+                <div class="coroutine-info">
+                    <div class="coroutine-metric">
+                        <h4>Active Coroutines</h4>
+                        <div class="value" id="active-coroutines">-</div>
+                    </div>
+                    <div class="coroutine-metric">
+                        <h4>Coroutine Switches</h4>
+                        <div class="value" id="coroutine-switches">-</div>
+                    </div>
+                    <div class="coroutine-metric">
+                        <h4>Peak Count</h4>
+                        <div class="value" id="coroutine-peak">-</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Elapsed Time (ms)</th>
+                        <th>Stack Usage</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="coroutine-table-body">
+                    <tr>
+                        <td colspan="4" class="text-center">Loading coroutine data...</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tab-content" id="connections-tab">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Session ID</th>
+                        <th>Remote Address</th>
+                        <th>Remote Port</th>
+                        <th>Connect Time</th>
+                        <th>Last Time</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="connection-table-body">
+                    <tr>
+                        <td colspan="6" class="text-center">Loading connection data...</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Modal for backtrace -->
+<div id="backtrace-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Coroutine Backtrace</h3>
+            <button id="close-backtrace-modal" class="close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <pre id="backtrace-content"></pre>
+        </div>
+    </div>
+</div>
+
+<script src="admin-dashboard.js"></script>
+</body>
+</html>
