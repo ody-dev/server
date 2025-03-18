@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Ody\Server;
 
+use Ody\Logger\StreamLogger;
 use Ody\Server\State\HttpServerState;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
@@ -19,10 +20,15 @@ class ServerCallbacks
      */
     public static function onStart (SwServer $server): void
     {
+        $logger = new StreamLogger('php://stderr');
         $protocol = ($server->ssl) ? "https" : "http";
-        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
-        echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
-        echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";
+        $logger->info("Server started successfully");
+        $logger->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
+        $logger->info("Press Ctrl+C to stop the server");
+
+//        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
+//        echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
+//        echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";
     }
 
     /**
@@ -54,6 +60,9 @@ class ServerCallbacks
             $serveState->setManagerProcessId($server->getManagerPid());
             $serveState->setWorkerProcessIds($workerIds);
         }
+
+        $logger = new StreamLogger('php://stderr');
+        $logger->debug("Worker $workerId started successfully");
     }
 
     /**
@@ -82,14 +91,15 @@ class ServerCallbacks
     /**
      * @param SwServer $server
      * @param int $workerId
-     * @param int $worker_id
-     * @param int $worker_pid
-     * @param int $exit_code
+     * @param int $workerPid
+     * @param int $exitCode
+     * @param int $signal
      * @return void
      */
-    public static function onWorkerError(SwServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
+    public static function onWorkerError(SwServer $server, int $workerId, int $workerPid, int $exitCode, int $signal): void
     {
-        error_log("Worker error: $workerId - pid: $worker_pid, exit_code: $exit_code");
+        $logger = new StreamLogger('php://stderr');
+        $logger->debug("Worker error: $workerId - pid: $workerPid, exit_code: $exitCode");
     }
 
     /**

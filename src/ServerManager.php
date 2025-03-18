@@ -2,13 +2,19 @@
 
 namespace Ody\Server;
 
+use Ody\Logger\StreamLogger;
+use Ody\Support\Config;
 use Ody\Swoole\HotReload\Watcher;
+use Psr\Log\LoggerInterface;
 use Swoole\Http\Server as HttpServer;
 use Swoole\Process;
 use Swoole\Websocket\Server as WsServer;
 
 class ServerManager
 {
+    /**
+     * @var HttpServer|WsServer
+     */
     public HttpServer|WsServer $server;
 
     /**
@@ -16,7 +22,28 @@ class ServerManager
      */
     protected static string $serverType;
 
+    /**
+     * @var object|null
+     */
     protected static $serverState;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected LoggerInterface $logger;
+
+    /**
+     * @var Config|null
+     */
+    protected ?Config $config = null;
+
+    /**
+     * ServerManager constructor
+     */
+    public function __construct()
+    {
+        $this->logger = new StreamLogger('php://stdout');
+    }
 
     public static function init(string $serverType): static
     {
@@ -27,11 +54,18 @@ class ServerManager
 
     public function start(): void
     {
+        logger()->info('Starting server', [
+            'host' => $this->server->host,
+            'port' => $this->server->port,
+            'mode' => $this->server->mode
+        ]);
+
         $this->server->start();
     }
 
     public function createServer(?array $config): static
     {
+        $this->logger->debug('Creating server');
         $this->server = new static::$serverType(
             $config['host'] ?? '127.0.0.1',
             $config['port'] ?? 9501,
@@ -74,6 +108,7 @@ class ServerManager
      */
     public function registerCallbacks(array $callbacks): static
     {
+        $this->logger->debug('Registering server callbacks');
         array_walk($callbacks,
             fn (&$callback, $event) => $this->server->on($event, [...$callback])
         );
@@ -118,7 +153,7 @@ class ServerManager
                 (new Watcher($paths))->start();
             }))->start();
 
-//            logger()->info("Watcher started");
+            $this->logger->info("File watcher started");
         }
 
         return $this;
@@ -130,6 +165,30 @@ class ServerManager
             'daemonize' => $daemonize,
         ]);
 
+        return $this;
+    }
+
+    /**
+     * Set the logger instance
+     *
+     * @param LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    /**
+     * Set the config instance
+     *
+     * @param Config $config
+     * @return $this
+     */
+    public function setConfig(Config $config): self
+    {
+        $this->config = $config;
         return $this;
     }
 }
