@@ -107,19 +107,21 @@ class ServerManager
      *
      * @param int $enableWatcher
      * @param object $serverState
-     * @return void
+     * @return ServerManager
      */
-    public function setWatcher(int $enableWatcher, object $serverState): void
+    public function setWatcher(int $enableWatcher, array $paths, object $serverState): static
     {
         if ($enableWatcher) {
-            (new Process(function (Process $process) use ($serverState) {
+            (new Process(function (Process $process) use ($paths, $serverState) {
                 $serverState::getInstance()
                     ->setWatcherProcessId($process->pid);
-                (new Watcher())->start();
+                (new Watcher($paths))->start();
             }))->start();
 
-            echo "   \033[1mINFO\033[0m  File watcher is enabled\n";
+//            logger()->info("Watcher started");
         }
+
+        return $this;
     }
 
     public function daemonize(bool $daemonize): static
