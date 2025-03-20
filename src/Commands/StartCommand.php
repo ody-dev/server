@@ -2,33 +2,35 @@
 
 namespace Ody\Server\Commands;
 
-use Ody\Core\Foundation\Console\Style;
-use Ody\Core\Foundation\Http\Server;
-use Ody\Core\Server\Dependencies;
+use Ody\Foundation\Bootstrap;
+use Ody\Foundation\Console\Command;
+use Ody\Foundation\HttpServer;
+use Ody\Foundation\Router;
 use Ody\Server\ServerManager;
 use Ody\Server\ServerType;
 use Ody\Server\State\HttpServerState;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
-/*
- * delete old routes closure cache files
- * TODO: implement routes cache
- */
-
-#[AsCommand(
-    name: 'server:start',
-    description: 'Start a http server'
-)]
 class StartCommand extends Command
 {
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'server:start';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'start a HTTP server';
+
     private HttpServerState $serverState;
-    private SymfonyStyle $io;
 
     protected function configure(): void
     {
@@ -46,40 +48,50 @@ class StartCommand extends Command
     }
 
     /**
-     * @throws \Exception
+     * Handle the command.
+     *
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function handle(InputInterface $input, OutputInterface $output): int
     {
-
+        // Get server configuration
+        $config = config('server');
         $serverState = HttpServerState::getInstance();
-        $this->io = new Style($input, $output);
-
-        if (!$this->canDaemonRun($input) ||
-            !$this->checkSslCertificate() ||
-            !Dependencies::check($this->io)
-        ) {
-            return Command::FAILURE;
-        }
 
         if ($serverState->httpServerIsRunning()) {
             $this->handleRunningServer($input, $output);
         }
 
-        Server::start(
-            ServerManager::init(ServerType::HTTP_SERVER, HttpServerState::getInstance())
-                ->createServer(config('server'))
-                ->setServerConfig(config('server.additional'))
-                ->registerCallbacks(config('server.callbacks'))
-                ->daemonize($input->getOption('daemonize'))
+        // Initialize the application
+        Bootstrap::init();
+
+        // Make sure routes are marked as registered
+        $router = $this->container->make(Router::class);
+        if (method_exists($router, 'markRoutesAsRegistered')) {
+            $router->markRoutesAsRegistered();
+        }
+
+        // TODO: Implement admin API server
+//        AdminServer::init($server);
+
+        // Start the server
+        HttpServer::start(
+            ServerManager::init(ServerType::HTTP_SERVER) // ServerType::WS_SERVER to start a websocket server
+            ->createServer($config)
+                ->setServerConfig($config['additional'])
+                ->registerCallbacks($config['callbacks'])
+                ->setWatcher($input->getOption('watch'), $config['watch'], $serverState)
                 ->getServerInstance()
         );
 
-        return Command::SUCCESS;
+        return 0;
     }
 
     private function handleRunningServer(InputInterface $input, OutputInterface $output): void
     {
-        $this->io->error('failed to listen server port[' . config('server.host') . ':' . config('server.port') . '], Error: Address already', true);
+        logger()->error(
+            'failed to listen server port[' . config('server.host') . ':' . config('server.port') . '], Error: Address already in use'
+        );
 
         $helper = $this->getHelper('question');
         $question = new ChoiceQuestion(
@@ -106,29 +118,56 @@ class StartCommand extends Command
         sleep(2);
     }
 
-    private function canDaemonRun(InputInterface $input): bool
+    private function stopServer($serverState, $input, $output): int
     {
-        if ($input->getOption('daemonize') && $input->getOption('watch')) {
-            $this->io->error('Cannot use watcher in daemonize mode', true);
-
-            return false;
+        if (!$serverState->httpServerIsRunning()) {
+            logger()->error('server is not running...');
+            return self::FAILURE;
         }
 
-        return true;
+        $helper = $this->getHelper('question');
+        $question = new ChoiceQuestion(
+            'Do you want the server to terminate? (defaults to no)',
+            ['no', 'yes'],
+            0
+        );
+        $question->setErrorMessage('Your selection is invalid.');
+
+        if ($helper->ask($input, $output, $question) !== 'yes') {
+            return self::FAILURE;
+        }
+
+        $serverState->killProcesses([
+            $serverState->getMasterProcessId(),
+            $serverState->getManagerProcessId(),
+            $serverState->getWatcherProcessId(),
+            ...$serverState->getWorkerProcessIds()
+        ]);
+
+        $serverState->clearProcessIds();
+        sleep(2);
+
+        logger()->info('Server stopped successfully');
+
+        return self::SUCCESS;
     }
 
-    private function checkSslCertificate(): bool
+    private function reloadServer()
     {
-        if (!is_null(config('server.ssl.ssl_cert_file')) && !file_exists(config('server.ssl.ssl_cert_file'))) {
-            $this->io->error("ssl certificate file is not found", true);
-            return false;
+        $serverState = HttpServerState::getInstance();
+
+        if (!$serverState->httpServerIsRunning()) {
+            logger()->info('Server is not running...');
+            return self::FAILURE;
         }
 
-        if (!is_null(config('server.ssl.ssl_cert_file')) && !file_exists(config('server.ssl.ssl_cert_file'))) {
-            $this->io->error("ssl key file is not found", true);
-            return false;
-        }
+        $serverState->reloadProcesses([
+            $serverState->getMasterProcessId(),
+            $serverState->getManagerProcessId(),
+            ...$serverState->getWorkerProcessIds()
+        ]);
 
-        return true;
+        logger()->info('reloading server...');
+        return self::SUCCESS;
     }
 }

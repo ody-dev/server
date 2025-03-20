@@ -26,6 +26,9 @@ class ServerCallbacks
         $logger->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
         $logger->info("Press Ctrl+C to stop the server");
 
+        // TODO: Implement admin API server
+//        AdminServer::start($server);
+
 //        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
 //        echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
 //        echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";

@@ -2,7 +2,6 @@
 
 namespace Ody\Server\Commands;
 
-use Ody\Core\Foundation\Console\Style;
 use Ody\Server\State\HttpServerState;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,10 +22,9 @@ class ReloadCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serverState = HttpServerState::getInstance();
-        $io = new Style($input, $output);
 
         if (!$serverState->httpServerIsRunning()){
-            $io->error('server is not running...' , true);
+            logger()->error('server is not running...');
             return self::FAILURE;
         }
 
@@ -36,7 +34,7 @@ class ReloadCommand extends Command
             ...$serverState->getWorkerProcessIds()
         ]);
 
-        $io->success('reloading workers...' , true);
+        logger()->info('reloading workers...');
         return self::SUCCESS;
     }
 }

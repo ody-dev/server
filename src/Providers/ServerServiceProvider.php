@@ -3,6 +3,9 @@
 namespace Ody\Server\Providers;
 
 use Ody\Foundation\Providers\ServiceProvider;
+use Ody\Server\Commands\ReloadCommand;
+use Ody\Server\Commands\StartCommand;
+use Ody\Server\Commands\StopCommand;
 use Ody\Server\ServerManager;
 use Ody\Support\Config;
 use Psr\Log\LoggerInterface;
@@ -31,5 +34,10 @@ class ServerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerCommands([
+            StartCommand::class,
+            StopCommand::class,
+            ReloadCommand::class,
+        ]);
     }
 }
