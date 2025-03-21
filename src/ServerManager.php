@@ -65,7 +65,6 @@ class ServerManager
 
     public function createServer(?array $config): static
     {
-        $this->logger->debug('Creating server');
         $this->server = new static::$serverType(
             $config['host'] ?? '127.0.0.1',
             $config['port'] ?? 9501,
@@ -108,7 +107,7 @@ class ServerManager
      */
     public function registerCallbacks(array $callbacks): static
     {
-        $this->logger->debug('Registering server callbacks');
+        $this->logger->debug('Registering server callbacks', [...$callbacks]);
         array_walk($callbacks,
             fn (&$callback, $event) => $this->server->on($event, [...$callback])
         );

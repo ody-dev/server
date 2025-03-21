@@ -20,18 +20,13 @@ class ServerCallbacks
      */
     public static function onStart (SwServer $server): void
     {
-        $logger = new StreamLogger('php://stderr');
         $protocol = ($server->ssl) ? "https" : "http";
-        $logger->info("Server started successfully");
-        $logger->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
-        $logger->info("Press Ctrl+C to stop the server");
+        logger()->info("Server started successfully");
+        logger()->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
+        logger()->info("Press Ctrl+C to stop the server");
 
         // TODO: Implement admin API server
 //        AdminServer::start($server);
-
-//        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
-//        echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
-//        echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";
     }
 
     /**
@@ -63,9 +58,6 @@ class ServerCallbacks
             $serveState->setManagerProcessId($server->getManagerPid());
             $serveState->setWorkerProcessIds($workerIds);
         }
-
-        $logger = new StreamLogger('php://stderr');
-        $logger->debug("Worker $workerId started successfully");
     }
 
     /**
@@ -74,7 +66,7 @@ class ServerCallbacks
      */
     public static function onManagerStart(SwServer $server)
     {
-
+        logger()->debug("Manager started successfully");
     }
 
     /**
@@ -101,22 +93,6 @@ class ServerCallbacks
      */
     public static function onWorkerError(SwServer $server, int $workerId, int $workerPid, int $exitCode, int $signal): void
     {
-        $logger = new StreamLogger('php://stderr');
-        $logger->debug("Worker error: $workerId - pid: $workerPid, exit_code: $exitCode");
-    }
-
-    /**
-     * @return int
-     */
-    private function getSslConfig(): int
-    {
-        if (
-            !is_null(config('server.ssl.ssl_cert_file')) &&
-            !is_null(config('server.ssl.ssl_key_file'))
-        ) {
-            return config('server.mode', SWOOLE_SSL) | SWOOLE_SSL;
-        }
-
-        return config('server.mode');
+        logger()->debug("Worker error: $workerId - pid: $workerPid, exit_code: $exitCode");
     }
 }
