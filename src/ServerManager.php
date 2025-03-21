@@ -68,10 +68,7 @@ class ServerManager
         $this->server = new static::$serverType(
             $config['host'] ?? '127.0.0.1',
             $config['port'] ?? 9501,
-            $this->getSslConfig(
                 $config['mode'] ?? SWOOLE_BASE,
-                $config['ssl'] ?? []
-            ),
             $config['sock_type'] ?? SWOOLE_SOCK_TCP,
         );
 
@@ -129,7 +126,7 @@ class ServerManager
             !is_null($config['ssl_cert_file']) &&
             !is_null($config['ssl_key_file'])
         ) {
-            return SWOOLE_SSL;
+            return SWOOLE_SSL | $serverMode;
         }
 
         return $serverMode;
