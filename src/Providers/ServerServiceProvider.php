@@ -34,6 +34,11 @@ class ServerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Publish configuration
+        $this->publishes([
+            __DIR__ . '/../../config/server.php' => 'server.php'
+        ], 'ody/server');
+
         $this->registerCommands([
             StartCommand::class,
             StopCommand::class,
