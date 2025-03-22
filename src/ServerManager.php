@@ -104,7 +104,6 @@ class ServerManager
      */
     public function registerCallbacks(array $callbacks): static
     {
-        $this->logger->debug('Registering server callbacks', [...$callbacks]);
         array_walk($callbacks,
             fn (&$callback, $event) => $this->server->on($event, [...$callback])
         );
