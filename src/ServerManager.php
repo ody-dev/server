@@ -1,14 +1,27 @@
 <?php
+/*
+ *  This file is part of ODY framework.
+ *
+ *  @link     https://ody.dev
+ *  @document https://ody.dev/docs
+ *  @license  https://github.com/ody-dev/ody-foundation/blob/master/LICENSE
+ */
 
 namespace Ody\Server;
 
+use Ody\Logger\StreamLogger;
+use Ody\Support\Config;
 use Ody\Swoole\HotReload\Watcher;
+use Psr\Log\LoggerInterface;
 use Swoole\Http\Server as HttpServer;
 use Swoole\Process;
 use Swoole\Websocket\Server as WsServer;
 
 class ServerManager
 {
+    /**
+     * @var HttpServer|WsServer
+     */
     public HttpServer|WsServer $server;
 
     /**
@@ -16,18 +29,44 @@ class ServerManager
      */
     protected static string $serverType;
 
+    /**
+     * @var object|null
+     */
     protected static $serverState;
 
-    public static function init(string $serverType, object $serverState): static
+    /**
+     * @var LoggerInterface
+     */
+    protected LoggerInterface $logger;
+
+    /**
+     * @var Config|null
+     */
+    protected ?Config $config = null;
+
+    /**
+     * ServerManager constructor
+     */
+    public function __construct()
+    {
+        $this->logger = new StreamLogger('php://stdout');
+    }
+
+    public static function init(string $serverType): static
     {
         static::$serverType = $serverType;
-        static::$serverState = $serverState;
 
         return new static();
     }
 
     public function start(): void
     {
+        logger()->info('Starting server', [
+            'host' => $this->server->host,
+            'port' => $this->server->port,
+            'mode' => $this->server->mode
+        ]);
+
         $this->server->start();
     }
 
@@ -36,10 +75,7 @@ class ServerManager
         $this->server = new static::$serverType(
             $config['host'] ?? '127.0.0.1',
             $config['port'] ?? 9501,
-            $this->getSslConfig(
                 $config['mode'] ?? SWOOLE_BASE,
-                $config['ssl'] ?? []
-            ),
             $config['sock_type'] ?? SWOOLE_SOCK_TCP,
         );
 
@@ -96,7 +132,7 @@ class ServerManager
             !is_null($config['ssl_cert_file']) &&
             !is_null($config['ssl_key_file'])
         ) {
-            return SWOOLE_SSL;
+            return SWOOLE_SSL | $serverMode;
         }
 
         return $serverMode;
@@ -107,19 +143,22 @@ class ServerManager
      * specified files and folders
      *
      * @param int $enableWatcher
-     * @return void
+     * @param object $serverState
+     * @return ServerManager
      */
-    public function setWatcher(int $enableWatcher): void
+    public function setWatcher(int $enableWatcher, array $paths, object $serverState): static
     {
         if ($enableWatcher) {
-            (new Process(function (Process $process) {
-                static::$serverState::getInstance()
+            (new Process(function (Process $process) use ($paths, $serverState) {
+                $serverState::getInstance()
                     ->setWatcherProcessId($process->pid);
-                (new Watcher())->start();
+                (new Watcher($paths))->start();
             }))->start();
 
-            echo "   \033[1mINFO\033[0m  File watcher is enabled\n";
+            $this->logger->info("File watcher started");
         }
+
+        return $this;
     }
 
     public function daemonize(bool $daemonize): static
@@ -128,6 +167,30 @@ class ServerManager
             'daemonize' => $daemonize,
         ]);
 
+        return $this;
+    }
+
+    /**
+     * Set the logger instance
+     *
+     * @param LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    /**
+     * Set the config instance
+     *
+     * @param Config $config
+     * @return $this
+     */
+    public function setConfig(Config $config): self
+    {
+        $this->config = $config;
         return $this;
     }
 }

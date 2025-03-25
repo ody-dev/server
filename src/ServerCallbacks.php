@@ -1,8 +1,17 @@
 <?php
+/*
+ *  This file is part of ODY framework.
+ *
+ *  @link     https://ody.dev
+ *  @document https://ody.dev/docs
+ *  @license  https://github.com/ody-dev/ody-foundation/blob/master/LICENSE
+ */
+
 declare(strict_types=1);
 
 namespace Ody\Server;
 
+use Ody\Logger\StreamLogger;
 use Ody\Server\State\HttpServerState;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
@@ -20,9 +29,12 @@ class ServerCallbacks
     public static function onStart (SwServer $server): void
     {
         $protocol = ($server->ssl) ? "https" : "http";
-        echo "   \033[1mSUCCESS\033[0m  Server started successfully\n";
-        echo "   \033[1mINFO\033[0m  listen on " . $protocol . "://" . $server->host . ':' . $server->port . PHP_EOL;
-        echo "   \033[1mINFO\033[0m  press Ctrl+C to stop the server\n";
+        logger()->info("Server started successfully");
+        logger()->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
+        logger()->info("Press Ctrl+C to stop the server");
+
+        // TODO: Implement admin API server
+//        AdminServer::start($server);
     }
 
     /**
@@ -62,7 +74,7 @@ class ServerCallbacks
      */
     public static function onManagerStart(SwServer $server)
     {
-
+        logger()->debug("Manager started successfully");
     }
 
     /**
@@ -76,34 +88,19 @@ class ServerCallbacks
 
     public static function onReceive(SwServer $server, int $fd, int $reactorId, string $data)
     {
-        dd($data);
+
     }
 
     /**
      * @param SwServer $server
      * @param int $workerId
-     * @param int $worker_id
-     * @param int $worker_pid
-     * @param int $exit_code
+     * @param int $workerPid
+     * @param int $exitCode
+     * @param int $signal
      * @return void
      */
-    public static function onWorkerError(SwServer $server, int $workerId, int $worker_id, int $worker_pid, int $exit_code): void
+    public static function onWorkerError(SwServer $server, int $workerId, int $workerPid, int $exitCode, int $signal): void
     {
-        dd('WorkerError', $workerId);
-    }
-
-    /**
-     * @return int
-     */
-    private function getSslConfig(): int
-    {
-        if (
-            !is_null(config('server.ssl.ssl_cert_file')) &&
-            !is_null(config('server.ssl.ssl_key_file'))
-        ) {
-            return config('server.mode', SWOOLE_SSL) | SWOOLE_SSL;
-        }
-
-        return config('server.mode');
+        logger()->debug("Worker error: $workerId - pid: $workerPid, exit_code: $exitCode");
     }
 }
