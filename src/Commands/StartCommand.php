@@ -12,7 +12,6 @@ namespace Ody\Server\Commands;
 use Ody\Foundation\Bootstrap;
 use Ody\Foundation\Console\Command;
 use Ody\Foundation\HttpServer;
-use Ody\Foundation\Router\Router;
 use Ody\Server\ServerManager;
 use Ody\Server\ServerType;
 use Ody\Server\State\HttpServerState;
@@ -69,15 +68,6 @@ class StartCommand extends Command
             $this->handleRunningServer($input, $output);
         }
 
-        // Initialize the application
-        Bootstrap::init();
-
-        // Make sure routes are marked as registered
-//        $router = $this->container->make(Router::class);
-//        if (method_exists($router, 'markRoutesAsRegistered')) {
-//            $router->markRoutesAsRegistered();
-//        }
-
         // TODO: Implement admin API server
 //        AdminServer::init($server);
 
@@ -88,7 +78,8 @@ class StartCommand extends Command
                 ->setServerConfig($config['additional'])
                 ->registerCallbacks($config['callbacks'])
                 ->setWatcher($input->getOption('watch'), $config['watch'], $serverState)
-                ->getServerInstance()
+                ->getServerInstance(),
+            Bootstrap::init($this->container)
         );
 
         return 0;
