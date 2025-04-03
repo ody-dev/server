@@ -9,7 +9,6 @@
 
 namespace Ody\Server\Commands;
 
-use Ody\Foundation\Bootstrap;
 use Ody\Foundation\Console\Command;
 use Ody\Foundation\HttpServer;
 use Ody\Server\ServerManager;
@@ -78,8 +77,7 @@ class StartCommand extends Command
                 ->setServerConfig($config['additional'])
                 ->registerCallbacks($config['callbacks'])
                 ->setWatcher($input->getOption('watch'), $config['watch'], $serverState)
-                ->getServerInstance(),
-            Bootstrap::init($this->container)
+                ->getServerInstance()
         );
 
         return 0;
