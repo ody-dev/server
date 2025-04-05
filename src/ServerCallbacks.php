@@ -29,9 +29,10 @@ class ServerCallbacks
     public static function onStart (SwServer $server): void
     {
         $protocol = ($server->ssl) ? "https" : "http";
-        logger()->info("Server started successfully");
-        logger()->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
-        logger()->info("Press Ctrl+C to stop the server");
+        $logger = new StreamLogger('php://stdout');
+        $logger->info("Server started successfully");
+        $logger->info("Listening on " . $protocol . "://" . $server->host . ':' . $server->port);
+        $logger->info("Press Ctrl+C to stop the server");
 
         // TODO: Implement admin API server
 //        AdminServer::start($server);

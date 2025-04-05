@@ -17,7 +17,7 @@ return [
     'additional' => [
         'daemonize' => false,
         'worker_num' => env('HTTP_SERVER_WORKER_COUNT', swoole_cpu_num() * 2),
-        'dispatch_mode' => 3, // Important: This ensures connections stay with their worker, does not work in SWOOLE_BASE
+        'dispatch_mode' => 2, // Important: This ensures connections stay with their worker, does not work in SWOOLE_BASE
         'open_http_protocol' => true,
         /**
          * log level
@@ -34,20 +34,18 @@ return [
         'log_date_format' => '%Y-%m-%d %H:%M:%S',
 
         // Coroutine
-        'enable_coroutine' => false,
         'max_coroutine' => 3000,
         'send_yield' => false,
 
         'ssl_cert_file' => null,
         'ssl_key_file' => null,
-    ],
 
-    'runtime' => [
         /**
          * enabling this will run clients like MySQL and Redis in a non-blocking fashion
          * https://wiki.swoole.com/en/#/runtime
          */
         'enable_coroutine' => true,
+
         /**
          * SWOOLE_HOOK_TCP - Enable TCP hook only
          * SWOOLE_HOOK_TCP | SWOOLE_HOOK_UDP | SWOOLE_HOOK_SOCKETS - Enable TCP, UDP and socket hooks
@@ -55,7 +53,14 @@ return [
          * SWOOLE_HOOK_ALL ^ SWOOLE_HOOK_FILE ^ SWOOLE_HOOK_STDIO - Enable all runtime hooks except file and stdio hooks
          * 0 - Disable runtime hooks
          */
-        'hook_flag' => SWOOLE_HOOK_ALL,
+        'hook_flags' => SWOOLE_HOOK_ALL,
+    ],
+
+    'runtime' => [
+
+
+        'ssl_cert_file' => null,
+        'ssl_key_file' => null,
     ],
 
     /**
@@ -64,8 +69,9 @@ return [
     'callbacks' => [
         ServerEvent::ON_REQUEST => [\Ody\Foundation\HttpServer::class, 'onRequest'],
         ServerEvent::ON_START => [\Ody\Server\ServerCallbacks::class, 'onStart'],
-        ServerEvent::ON_WORKER_ERROR => [\Ody\Server\ServerCallbacks::class, 'onWorkerError'],
-        ServerEvent::ON_WORKER_START => [\Ody\Server\ServerCallbacks::class, 'onWorkerStart'],
+        ServerEvent::ON_WORKER_START => [\Ody\Foundation\HttpServer::class, 'onWorkerStart'],
+        ServerEvent::ON_WORKER_STOP => [\Ody\Foundation\HttpServer::class, 'onWorkerStop'],
+        ServerEvent::ON_WORKER_ERROR => [\Ody\Foundation\HttpServer::class, 'onWorkerError'],
     ],
 
     /**
