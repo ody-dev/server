@@ -42,5 +42,6 @@
     "phpcs": "phpcs",
     "phpstan": "phpstan --memory-limit=-1",
     "psalm": "psalm --no-cache"
-  }
+  },
+  "version": "0.2.0"
 }
