@@ -18,7 +18,8 @@ return [
         'daemonize' => false,
         'worker_num' => env('HTTP_SERVER_WORKER_COUNT', swoole_cpu_num() * 2),
         'dispatch_mode' => 2, // Important: This ensures connections stay with their worker, does not work in SWOOLE_BASE
-        'open_http_protocol' => true,
+        'open_http2_protocol' => true,
+        'open_cpu_affinity' => true,
         /**
          * log level
          * SWOOLE_LOG_DEBUG (default)
